@@ -10,44 +10,103 @@
           aria-label="Menu"
           @click="leftDrawerOpen = !leftDrawerOpen"
         />
-
         <q-toolbar-title>
-          Quasar App
+          Brian App
         </q-toolbar-title>
-
-        <div>Quasar v{{ $q.version }}</div>
       </q-toolbar>
+
+      <div class="q-px-lg q-pt-xl q-mb-md">
+        <div class="text-h3">Todo</div>
+        <div class="text-subtitle1">{{todayDate}}</div>
+      </div>
+      <q-img
+        src="../statics/coffee.jpg"
+        class="header-image absolute-top"/>
+
     </q-header>
 
+    <!--  drawer start -->
     <q-drawer
       v-model="leftDrawerOpen"
       show-if-above
-      bordered
-      content-class="bg-grey-1"
+      :width="200"
+      :breakpoint="600"
     >
-      <q-list>
-        <q-item-label
-          header
-          class="text-grey-8"
-        >
-          Essential Links
-        </q-item-label>
-        <EssentialLink
-          v-for="link in essentialLinks"
-          :key="link.title"
-          v-bind="link"
-        />
-      </q-list>
+      <q-scroll-area style="height: calc(100% - 192px); margin-top: 192px; border-right: 1px solid #ddd">
+        <q-list padding>
+          <q-item
+            to="/"
+            exact
+            clickable
+            v-ripple>
+            <q-item-section avatar>
+              <q-icon name="list" />
+            </q-item-section>
+
+            <q-item-section>
+              Todo
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            to="/help"
+            exact
+            clickable
+            v-ripple>
+            <q-item-section avatar>
+              <q-icon name="help" />
+            </q-item-section>
+
+            <q-item-section>
+              Help
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-scroll-area>
+
+      <q-img class="absolute-top" src="https://cdn.quasar.dev/img/material.png" style="height: 192px">
+        <div class="absolute-bottom bg-transparent">
+          <q-avatar size="56px" class="q-mb-sm">
+            <img src="../statics/mypic.jpg">
+          </q-avatar>
+          <div class="text-weight-bold">Brian Kim</div>
+          <div>@brian</div>
+        </div>
+      </q-img>
     </q-drawer>
+    <!--  drawer end -->
 
     <q-page-container>
-      <router-view />
+      <keep-alive>
+        <router-view />
+      </keep-alive>
     </q-page-container>
   </q-layout>
 </template>
 
 <script>
 import EssentialLink from 'components/EssentialLink.vue'
+import {date} from 'quasar'
+
+export default {
+  name: 'MainLayout',
+  components: {
+    EssentialLink
+  },
+  data () {
+    return {
+      leftDrawerOpen: false,
+      essentialLinks: linksData
+    }
+  },
+  computed:{
+    todayDate(){
+      let timeStamp = Date.now();
+      return date.formatDate(timeStamp, 'dddd D MMMM YYYY');
+    }
+  }
+}
+
 
 const linksData = [
   {
@@ -94,16 +153,9 @@ const linksData = [
   }
 ]
 
-export default {
-  name: 'MainLayout',
-  components: {
-    EssentialLink
-  },
-  data () {
-    return {
-      leftDrawerOpen: false,
-      essentialLinks: linksData
-    }
-  }
-}
 </script>
+<style lang="css">
+.header-image {
+  height: 100%; z-index: -1; opacity: 0.7;
+}
+</style>
