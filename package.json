@@ -11,9 +11,15 @@
     "build": "quasar build"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.15",
+    "@fullcalendar/daygrid": "^6.1.15",
+    "@fullcalendar/interaction": "^6.1.15",
+    "@fullcalendar/vue3": "^6.1.15",
     "@quasar/extras": "^1.16.4",
     "core-js": "^3.6.5",
-    "quasar": "^1.0.0"
+    "quasar": "^1.0.0",
+    "vue": "^2.7.16",
+    "vue-template-compiler": "^2.7.16"
   },
   "devDependencies": {
     "@quasar/app": "^2.0.0"
