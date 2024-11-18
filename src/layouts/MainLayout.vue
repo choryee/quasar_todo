@@ -15,8 +15,9 @@
         </q-toolbar-title>
       </q-toolbar>
 
-      <div class="q-px-lg q-pt-xl q-mb-md">
-        <div class="text-h3">Todo</div>
+<!--      <div class="q-px-lg q-pt-xl q-mb-md">-->
+      <div>
+<!--        <div class="text-h3">Todo</div>-->
         <div class="text-subtitle1">{{todayDate}}</div>
       </div>
       <q-img
