@@ -4,7 +4,7 @@
       style="height: 400px"
       flat
       bordered
-      title="Treats"
+      title="All my students"
       :data="rows"
       :columns="columns"
       row-key="index"
@@ -17,6 +17,10 @@
 
 <script>
 export default {
+  props:{
+    type:Array,
+    required:true
+  },
   data() {
     // Data and variables
     const seed = [
@@ -43,7 +47,7 @@ export default {
 
     // Generate lots of rows
     let rows = [];
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 2; i++) {
       rows = rows.concat(seed.slice(0).map(r => ({...r})));
     }
     rows.forEach((row, index) => {

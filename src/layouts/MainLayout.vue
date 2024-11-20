@@ -50,7 +50,7 @@
           </q-item>
 
           <q-item
-            to="/help"
+            to="/lecturerMain"
             exact
             clickable
             v-ripple>
@@ -59,9 +59,10 @@
             </q-item-section>
 
             <q-item-section>
-              Help
+              lecturerMain
             </q-item-section>
           </q-item>
+
         </q-list>
       </q-scroll-area>
 

@@ -7,7 +7,10 @@ quasar dev
 
 http://localhost:8080
 
-vue@2 <-- 현재 버전.
+"quasar": "^1.0.0",
+"@fullcalendar/core": "^5.11.5",
+
+vue@2.7.16 <-- 현재 버전.
 Vue 2용 FullCalendar는, @fullcalendar/vue 5.x 버전을 사용해야 합니다.
 Vue 2에서 Vue 3용 FullCalendar(6.x 버전)를 사용하면 호환성 문제가 발생합니다.
 FullCalendar 6.x부터는 Vue 2 지원이 중단되었습니다. Vue 3로 마이그레이션할 계획이 없는 경우 FullCalendar 5.x를 유지하세요.

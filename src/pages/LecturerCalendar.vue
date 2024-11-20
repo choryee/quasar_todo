@@ -9,17 +9,6 @@
     </div>
     <br/>
     <div>
-      <!-- 신규 -->
-      <!-- -->
-      <NewStudentForLecturer/>
-    </div>
-    <br/>
-    <div>
-      <!-- All my students list -->
-      <AllStudentForLecturer/>
-    </div>
-    <br/>
-    <div>
       <EnrolledStudentForLecturer @update-event="updateEventData" :eventData="selectedEvent"/>
     </div>
   </q-page>

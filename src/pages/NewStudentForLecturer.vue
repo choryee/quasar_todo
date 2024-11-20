@@ -1,14 +1,16 @@
 <template>
   <div className="q-pa-md">
     <q-table
+      class="custom-table text-lg"
       flat
       bordered
-      title="Treats"
+      title="Newly enrolled students"
       :data="rows"
       :columns="columns"
       row-key="name"
       selection="single"
       :selected.sync="selected"
+      style="font-size: 34px;"
     />
 
     <div className="q-mt-md">
@@ -32,11 +34,11 @@ export default {
           format: val => `${val}`,
           sortable: true
         },
-        {name: 'calories', align: 'center', label: 'Calories', field: 'calories', sortable: true},
-        {name: 'fat', label: 'Fat (g)', field: 'fat', sortable: true},
-        {name: 'carbs', label: 'Carbs (g)', field: 'carbs'},
-        {name: 'protein', label: 'Protein (g)', field: 'protein'},
-        {name: 'sodium', label: 'Sodium (mg)', field: 'sodium'},
+        { name: 'calories', align: 'center', label: 'grade', field: 'calories', sortable: true },
+        { name: 'fat', label: 'enrollment start_date', field: 'fat', sortable: true },
+        { name: 'carbs', label: 'enrollment end_date', field: 'carbs' },
+        { name: 'protein', label: 'days_for_class', field: 'protein' },
+        { name: 'sodium', label: 'numberofmissing', field: 'sodium' },
         {
           name: 'calcium',
           label: 'Calcium (%)',
@@ -99,5 +101,13 @@ export default {
 <style scoped>
 .q-pa-md {
   padding: 16px;
+}
+.custom-table .q-td {
+  font-size: 14px; /* 원하는 크기로 변경 */
+}
+
+.custom-table th {
+  font-size: 40px; /* 헤더의 글자 크기 */
+  font-weight: bold; /* 헤더를 강조 */
 }
 </style>
