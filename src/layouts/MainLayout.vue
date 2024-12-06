@@ -1,6 +1,12 @@
 <template>
+<!--    <Header/>-->
+
   <q-layout view="lHh Lpr lFf">
+
+
+    <!--  q-header -->
     <q-header elevated>
+
       <q-toolbar>
         <q-btn
           flat
@@ -10,16 +16,11 @@
           aria-label="Menu"
           @click="leftDrawerOpen = !leftDrawerOpen"
         />
-        <q-toolbar-title>
-          Brian App
-        </q-toolbar-title>
       </q-toolbar>
-
-<!--      <div class="q-px-lg q-pt-xl q-mb-md">-->
       <div>
-<!--        <div class="text-h3">Todo</div>-->
         <div class="text-subtitle1">{{todayDate}}</div>
       </div>
+
       <q-img
         src="../statics/coffee.jpg"
         class="header-image absolute-top"/>
@@ -50,16 +51,145 @@
           </q-item>
 
           <q-item
+            to="/main"
+            exact
+            clickable
+            v-ripple>
+            <q-item-section avatar>
+              <q-icon name="list" />
+            </q-item-section>
+            <q-item-section>
+              MainPage
+            </q-item-section>
+          </q-item>
+
+          <q-item
             to="/lecturerMain"
             exact
             clickable
             v-ripple>
             <q-item-section avatar>
-              <q-icon name="help" />
+              <q-icon name="list" />
             </q-item-section>
-
             <q-item-section>
               lecturerMain
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            to="/StudentMainCalendar"
+            exact
+            clickable
+            v-ripple>
+            <q-item-section avatar>
+              <q-icon name="list" />
+            </q-item-section>
+            <q-item-section>
+              StudentMainCalendar
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            to="/enrollment"
+            exact
+            clickable
+            v-ripple>
+            <q-item-section avatar>
+              <q-icon name="list" />
+            </q-item-section>
+            <q-item-section>
+              enrollment
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            to="/payment"
+            exact
+            clickable
+            v-ripple>
+            <q-item-section avatar>
+              <q-icon name="list" />
+            </q-item-section>
+            <q-item-section>
+              payment
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            to="/admin"
+            exact
+            clickable
+            v-ripple>
+            <q-item-section avatar>
+              <q-icon name="list" />
+            </q-item-section>
+            <q-item-section>
+              admin
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            to="/joinForLecturer"
+            exact
+            clickable
+            v-ripple>
+            <q-item-section avatar>
+              <q-icon name="list" />
+            </q-item-section>
+            <q-item-section>
+              joinForLecturer
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            to="/qna"
+            exact
+            clickable
+            v-ripple>
+            <q-item-section avatar>
+              <q-icon name="list" />
+            </q-item-section>
+            <q-item-section>
+              qna
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            to="/notice"
+            exact
+            clickable
+            v-ripple>
+            <q-item-section avatar>
+              <q-icon name="list" />
+            </q-item-section>
+            <q-item-section>
+              notice
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            to="/test"
+            exact
+            clickable
+            v-ripple>
+            <q-item-section avatar>
+              <q-icon name="list" />
+            </q-item-section>
+            <q-item-section>
+              test
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            to="/jobInterviewCalendar"
+            exact
+            clickable
+            v-ripple>
+            <q-item-section avatar>
+              <q-icon name="list" />
+            </q-item-section>
+            <q-item-section>
+              jobInterviewCalendar
             </q-item-section>
           </q-item>
 
@@ -69,7 +199,7 @@
       <q-img class="absolute-top" src="https://cdn.quasar.dev/img/material.png" style="height: 192px">
         <div class="absolute-bottom bg-transparent">
           <q-avatar size="56px" class="q-mb-sm">
-            <img src="../statics/mypic.jpg">
+<!--            <img src="../statics/mypic.jpg">-->
           </q-avatar>
           <div class="text-weight-bold">Brian Kim</div>
           <div>@brian</div>
@@ -84,16 +214,19 @@
       </keep-alive>
     </q-page-container>
   </q-layout>
+
 </template>
 
 <script>
 import EssentialLink from 'components/EssentialLink.vue'
-import {date} from 'quasar'
+import {date} from 'quasar';
+import Header from 'pages/Header.vue'
 
 export default {
   name: 'MainLayout',
   components: {
-    EssentialLink
+    EssentialLink,
+    Header
   },
   data () {
     return {

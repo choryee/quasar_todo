@@ -22,6 +22,7 @@ module.exports = function (/* ctx */) {
     // https://v1.quasar.dev/quasar-cli/boot-files
     boot: [
       'composition-api',
+      'vuex', // 여기에서 vuex 부트 파일을 추가
 
     ],
 
@@ -74,8 +75,16 @@ module.exports = function (/* ctx */) {
     // Full list of options: https://v1.quasar.dev/quasar-cli/quasar-conf-js#Property%3A-devServer
     devServer: {
       https: false,
-      port: 8080,
-      open: true // opens browser window automatically
+      port: 8083,
+      open: true, // opens browser window automatically
+      proxy: {
+        '/audio/upload': {
+          target: 'http://localhost:8080', // 백엔드 서버 주소
+          changeOrigin: true, // 도메인 변경 허용
+          //pathRewrite: { '^/uploads': '/uploads' }, // 필요 시 경로 재작성
+        },
+      },
+
     },
 
     // https://v1.quasar.dev/quasar-cli/quasar-conf-js#Property%3A-framework

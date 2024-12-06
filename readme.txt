@@ -2,6 +2,8 @@ quasar 프로젝트 241109
 
 내 노트패드에 위 이름으로 저장됨.
 
+Quasar v1은 Vue 2를 사용하므로, Chart.js와의 호환성을 확인하세요.
+
 실행
 quasar dev
 
@@ -11,6 +13,11 @@ http://localhost:8080
 "@fullcalendar/core": "^5.11.5",
 
 vue@2.7.16 <-- 현재 버전.
+vuex@3.6.2
+(vuex 3.x.x과 vue 2.x.x과 호완 되는 것.)
+Vuex actions 호출 -> (mutations를 거쳐) --> state 변경함.
+
+
 Vue 2용 FullCalendar는, @fullcalendar/vue 5.x 버전을 사용해야 합니다.
 Vue 2에서 Vue 3용 FullCalendar(6.x 버전)를 사용하면 호환성 문제가 발생합니다.
 FullCalendar 6.x부터는 Vue 2 지원이 중단되었습니다. Vue 3로 마이그레이션할 계획이 없는 경우 FullCalendar 5.x를 유지하세요.
@@ -32,6 +39,14 @@ colums중복 콘솔 에러 -- vue2로 바꿔야.
 Vue 2 project(Quasar v1)
 https://v1.quasar.dev/
 
+
+******* LecturerMain.vue *******
+<!-- 강사 정보를 보여주는 섹션 -->
+<NewStudentForLecturer />
+<AllStudentForLecturer :lessons="lessonsData"/>
+<LecturerCalendar />
+  - <FullCalendar>
+  - <ScheduleDetailForLecturer> <-- emit
 
 
 

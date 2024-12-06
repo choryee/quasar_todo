@@ -1,16 +1,19 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="calendar-container">
-      <FullCalendar
-        ref="fullCalendar"
-        :options="calendarOptions"
-        @eventClick="handleEventClick"
-      />
-    </div>
-    <br/>
-    <div>
-      <EnrolledStudentForLecturer @update-event="updateEventData" :eventData="selectedEvent"/>
-    </div>
+    <q-card>
+      <div class="calendar-container">
+        <FullCalendar
+          ref="fullCalendar"
+          :options="calendarOptions"
+          @eventClick="handleEventClick"
+        />
+      </div>
+      <br/>
+      <div>
+        <ScheduleDetailForLecturer @update-event="updateEventData" :eventData="selectedEvent"/>
+      </div>
+    </q-card>
+
   </q-page>
 </template>
 
@@ -18,20 +21,16 @@
 import FullCalendar from "@fullcalendar/vue"; // FullCalendar Core
 import dayGridPlugin from '@fullcalendar/daygrid'; // 월간 보기 플러그인
 import interactionPlugin from '@fullcalendar/interaction'; // 클릭/드래그 인터랙션 플러그인
-import EnrolledStudentForLecturer from "pages/EnrolledStudentForLecturer.vue";
-import NewStudentForLecturer from "pages/NewStudentForLecturer.vue";
-import AllStudentForLecturer from "pages/AllStudentForLecturer.vue";
+import ScheduleDetailForLecturer from "pages/ScheduleDetailForLecturer.vue";
+import axios from "axios";
 
 export default {
   components: {
     FullCalendar,
-    NewStudentForLecturer,
-    EnrolledStudentForLecturer,
-    AllStudentForLecturer
+    ScheduleDetailForLecturer
   },
   data() {
     return {
-      selectedEvent: null, // 선택된 이벤트 저장
       calendarOptions: {
         plugins: [dayGridPlugin, interactionPlugin],
         initialView: 'dayGridMonth',
@@ -41,37 +40,8 @@ export default {
         expandRows: true,
         eventClick:this.handleEventClick
       },
-      // 초기 이벤트 데이터
-      initialEvents: [
-        {
-          title: 'John Doe- Math',
-          start: '2024-11-19T10:30:00',
-          studentName: 'John Doe',
-          classTitle: 'Math 101',
-          pronunciationRating:0,
-          comment:'aaa'
-        },
-        {
-          title: 'History Class - Jane Smith',
-          start: '2024-11-19T14:00:00',
-          studentName: 'Jane Smith',
-          classTitle: 'History 201',
-          pronunciationRating:0,
-          comment:'bbb'
-        },
-        {
-          title: 'Science Class - Michael Lee',
-          start: '2024-11-21T08:00:00',
-          studentName: 'Michael Lee',
-          classTitle: 'Science 301',
-        },
-        {
-          title: 'English Class - Emily Davis',
-          start: '2024-11-22T09:00:00',
-          studentName: 'Emily Davis',
-          classTitle: 'English 101',
-        }
-      ]
+      selectedEvent: null, // 선택된 이벤트 저장
+      updatedData:[]
     };
   },
   watch: {
@@ -82,21 +52,54 @@ export default {
   },
   mounted() {
     // 초기 이벤트를 calendarOptions에 설정
-    this.calendarOptions.events = this.initialEvents;
+    //this.calendarOptions.events = this.initialEvents;
+    this.getAllLessons();
   },
   methods: {
+    getAllLessons(){
+      axios.get('http://localhost:8080/getAllLessonSchedules')
+        .then(({data})=>{
+          console.log('캘린더 res>>>', data);
+          // 서버에서 받은 데이터를 FullCalendar 형식에 맞게 설정
+          const events = data.map(event => ({
+            title: event.member_id, // 이벤트 제목
+            start: `${event.lesson_date}T${event.lesson_time}`,  // 시작 시간
+            extendedProps: { // 여기 필드는 캘린더에 안 보임. 위 필드만 보임.
+              subject_name: event.subject_name,
+              start_time: event.lesson_time,
+              member_id: event.member_id,
+              pronunciation:event.pronunciation,
+              grammar:event.grammar,
+              expression:event.expression,
+              lecturer_evaluation:event.lecturer_evaluation,
+              comments:event.comments,
+              attend_yn:event.attend_yn,
+              schedule_id: event.schedule_id,
+              audioFileUrl:event.audioFileUrl
+            }
+          }));
+          this.calendarOptions.events = events;
+          console.log('this.calendarOptions.events >>>', this.calendarOptions.events);
+        })
+    },
     handleEventClick(info) {
       console.log('Clicked on date:', info.dateStr); // 클릭한 날짜 확인
 
       // 클릭한 이벤트의 데이터 추출
       const eventData = {
-        title: info.event.title,
+        title: info.event.extendedProps.subject_name,
         start: info.event.start.toISOString(),
         description: info.event.extendedProps.description || 'No description',
-        studentName: info.event.extendedProps.studentName,
-        classTitle: info.event.extendedProps.classTitle,
-        pronunciationRating:info.event.extendedProps.pronunciationRating,
-        comment:info.event.extendedProps.comment
+        member_id: info.event.extendedProps.member_id,
+        start_time: info.event.extendedProps.start_time,
+        pronunciation:info.event.extendedProps.pronunciation,
+        grammar:info.event.extendedProps.grammar,
+        expression:info.event.extendedProps.expression,
+        lecturer_evaluation:info.event.extendedProps.lecturer_evaluation,
+        comments:info.event.extendedProps.comments,
+        schedule_id:info.event.extendedProps.schedule_id,
+        attend_yn:info.event.extendedProps.attend_yn,
+        audioFileUrl:info.event.extendedProps.audioFileUrl
       };
 
       // 이벤트 추가 후 캘린더를 리프레시하여 새로 추가된 이벤트가 보이게 함
@@ -104,28 +107,75 @@ export default {
 
       this.selectedEvent = eventData;
       console.log('eventData >>>', eventData);
+      console.log('this.selectedEvent >>>', this.selectedEvent);
     },
-    updateEventData(updateData){
+    updateEventData(updateData){ //자식에서 수정후 부모에서 emit받은 것.
       console.log('자식에서 수정후 부모에서 emit받은 것. >>>', updateData);
       // this.initialEvents = {...this.initialEvents, ...updateData};
       // console.log('pronunciationRating >>>', this.initialEvents[1].pronunciationRating);
       //자식에서 emit하고, 바로 위에서 업데한 것으로, 서버에 insert? update?
 
-      console.log('updateData.studentName >>>', updateData.studentName);
-      this.initialEvents = this.initialEvents.map(event =>
-        event.studentName === updateData.studentName ? {...event, ...updateData} : event
-      );
-      // 바로 처럼후에, FullCalendar에서 이벤트 업데이트
-      const calendarApi = this.$refs.fullCalendar.getApi(); // FullCalendar 인스턴스 가져오기
-      calendarApi.removeAllEvents(); // 기존 이벤트 제거
-      calendarApi.addEventSource(this.initialEvents); // 새 이벤트 추가
+      console.log('updateData.schedule_id >>>', updateData.schedule_id);
+      if (this.selectedEvent && this.selectedEvent.schedule_id === updateData.schedule_id) {
+        this.selectedEvent = { ...this.selectedEvent, ...updateData };
+      }
+      // 바로 위처럼후에, FullCalendar에서 이벤트 업데이트
+      //const calendarApi = this.$refs.fullCalendar.getApi(); // FullCalendar 인스턴스 가져오기
 
+      // FullCalendar에서 이벤트 업데이트
+      const calendarApi = this.$refs.fullCalendar.getApi(); // FullCalendar 인스턴스 가져오기
+
+      // 캘린더에 있는 기존 이벤트들을 가져옴
+      const currentEvents = calendarApi.getEvents();
+      // 수정된 이벤트와 일치하는 이벤트를 찾고, 해당 이벤트를 수정
+      const updatedEvent = currentEvents.find(event => event.extendedProps.schedule_id === this.selectedEvent.schedule_id);
+
+      if (updatedEvent) {
+        // 기존 이벤트를 수정
+        updatedEvent.setProp('title', this.selectedEvent.title);
+        updatedEvent.setExtendedProp('pronunciation', this.selectedEvent.pronunciation);
+        updatedEvent.setExtendedProp('grammar', this.selectedEvent.grammar);
+        updatedEvent.setExtendedProp('expression', this.selectedEvent.expression);
+        updatedEvent.setExtendedProp('lecturer_evaluation', this.selectedEvent.lecturer_evaluation);
+        updatedEvent.setExtendedProp('comments', this.selectedEvent.comments);
+        updatedEvent.setStart(this.selectedEvent.start);
+        updatedEvent.setExtendedProp('audioFileUrl', this.selectedEvent.audioFileUrl);
+
+        this.updateSchedule();
+      }
+    },
+    updateSchedule(){
+      const updatePayload = {
+        schedule_id: this.selectedEvent.schedule_id, // 서버에서 이벤트를 식별하는 ID
+        subject_name: this.selectedEvent.title, // 수정된 제목
+        //start: this.selectedEvent.start, // 수정된 시작 시간
+        pronunciation: this.selectedEvent.pronunciation, // 발음 평가
+        grammar: this.selectedEvent.grammar, // 문법 평가
+        expression: this.selectedEvent.expression, // 표현력 평가
+        lecturer_evaluation: this.selectedEvent.lecturer_evaluation, // 강사 평가
+        comments: this.selectedEvent.comments,
+        attend_yn:this.selectedEvent.attend_yn,
+        audioFileUrl:this.selectedEvent.audioFileUrl
+      };
+
+      console.log('부모 emit받은후  audioFileUrl>>>', this.selectedEvent.audioFileUrl); // null
+      axios.post('http://localhost:8080/updateSchedule', updatePayload)
+        .then(res=>{
+          console.log('updateSchedule res >>>', res);
+        })
+        .catch(error => {
+          console.error('업데이트 실패:', error.response || error.message);
+        });
     }
   },
 };
 </script>
 
 <style>
+.q-card {
+  max-width: 1200px;
+  margin: 16px;
+}
 .calendar-container {
   height: 500px; /* 캘린더 높이 고정 */
   width: 100%; /* 가로 폭 자동 조정 */

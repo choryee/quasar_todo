@@ -1,7 +1,7 @@
 <template>
   <div className="q-pa-md">
     <q-table
-      style="height: 400px"
+      style="height: 300px"
       flat
       bordered
       title="All my students"
@@ -16,87 +16,84 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   props:{
-    type:Array,
-    required:true
+    lessons: {
+      type: Array,
+      required: true
+    }
   },
   data() {
     // Data and variables
-    const seed = [
-      {name: 'Frozen Yogurt', calories: 159, fat: 6.0, carbs: 24, protein: 4.0, sodium: 87, calcium: '14%', iron: '1%'},
-      {
-        name: 'Ice cream sandwich',
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        sodium: 129,
-        calcium: '8%',
-        iron: '1%'
-      },
-      {name: 'Eclair', calories: 262, fat: 16.0, carbs: 23, protein: 6.0, sodium: 337, calcium: '6%', iron: '7%'},
-      {name: 'Cupcake', calories: 305, fat: 3.7, carbs: 67, protein: 4.3, sodium: 413, calcium: '3%', iron: '8%'},
-      {name: 'Gingerbread', calories: 356, fat: 16.0, carbs: 49, protein: 3.9, sodium: 327, calcium: '7%', iron: '16%'},
-      {name: 'Jelly bean', calories: 375, fat: 0.0, carbs: 94, protein: 0.0, sodium: 50, calcium: '0%', iron: '0%'},
-      {name: 'Lollipop', calories: 392, fat: 0.2, carbs: 98, protein: 0, sodium: 38, calcium: '0%', iron: '2%'},
-      {name: 'Honeycomb', calories: 408, fat: 3.2, carbs: 87, protein: 6.5, sodium: 562, calcium: '0%', iron: '45%'},
-      {name: 'Donut', calories: 452, fat: 25.0, carbs: 51, protein: 4.9, sodium: 326, calcium: '2%', iron: '22%'},
-      {name: 'KitKat', calories: 518, fat: 26.0, carbs: 65, protein: 7, sodium: 54, calcium: '12%', iron: '6%'}
-    ];
 
-    // Generate lots of rows
-    let rows = [];
-    for (let i = 0; i < 2; i++) {
-      rows = rows.concat(seed.slice(0).map(r => ({...r})));
-    }
-    rows.forEach((row, index) => {
-      row.index = index;
-    });
-
-    return {
+    return { // name,label,field순으로
       columns: [
-        {name: 'index', label: '#', field: 'index'},
-        {
-          name: 'name',
-          required: true,
-          label: 'Dessert (100g serving)',
-          align: 'left',
-          field: row => row.name,
-          format: val => `${val}`,
-          sortable: true
-        },
-        {name: 'calories', align: 'center', label: 'Calories', field: 'calories', sortable: true},
-        {name: 'fat', label: 'Fat (g)', field: 'fat', sortable: true},
-        {name: 'carbs', label: 'Carbs (g)', field: 'carbs'},
-        {name: 'protein', label: 'Protein (g)', field: 'protein'},
-        {name: 'sodium', label: 'Sodium (mg)', field: 'sodium'},
-        {
-          name: 'calcium',
-          label: 'Calcium (%)',
-          field: 'calcium',
-          sortable: true,
-          sort: (a, b) => parseInt(a, 10) - parseInt(b, 10)
-        },
-        {
-          name: 'iron',
-          label: 'Iron (%)',
-          field: 'iron',
-          sortable: true,
-          sort: (a, b) => parseInt(a, 10) - parseInt(b, 10)
-        }
+        { name: 'member_id', label: 'Member ID', field: 'member_id', sortable: true },
+        { name: 'subject_name', label: 'Subject Name', field: 'subject_name', sortable: true },
+        { name: 'lesson_method', label: 'Lesson Method', field: 'lesson_method', sortable: true },
+        { name: 'lesson_period', label: 'Lesson Period', field: 'lesson_period', sortable: true },
+        { name: 'lesson_frequency', label: 'Lesson Frequency', field: 'lesson_frequency', sortable: true },
+        { name: 'lesson_duration', label: 'Lesson Duration', field: 'lesson_duration', sortable: true },
+        { name: 'lesson_days', label: 'Lesson Days', field: 'lesson_days' },
+        { name: 'start_date', label: 'Start Date', field: 'start_date', sortable: true },
+        { name: 'start_time', label: 'Start Time', field: 'start_time', sortable: true },
+        { name: 'skype_id', label: 'Skype ID', field: 'skype_id' }
       ],
-      rows: rows,
+      rows: [],
       pagination: {
         rowsPerPage: 0
       }
     };
+  },
+  // watch
+  watch: {
+    lessons: {
+      immediate: true,
+      handler(newLessons) {
+        // this.rows = newLessons.map(item => ({
+        //   member_id: item.member_id,
+        //   subject_name: item.subject_name,
+        //   lesson_method: item.lesson_method,
+        //   lesson_period: item.lesson_period,
+        //   lesson_frequency: item.lesson_frequency,
+        //   lesson_duration: item.lesson_duration,
+        //   lesson_days: item.lesson_days,
+        //   start_date: item.start_date,
+        //   start_time: item.start_time,
+        //   skype_id: item.skype_id
+        // }));
+
+      }
+    }
+  },
+  mounted() {
+    this.getInfoByLecturerId();
+  },
+  methods:{
+    getInfoByLecturerId(){
+      const lecturer_id = 36; // TODO
+      axios.get('http://localhost:8080/getInfoByLecturerId', {
+        params :{
+          lecturer_id : lecturer_id
+        }
+      })
+        .then(({data})=>{
+          console.log('getInfoByLecturerId >>>', data);
+            this.rows = data;
+        })
+
+    }
   }
 };
 </script>
 
 <style scoped>
 .q-pa-md {
-  padding: 16px;
+  padding: 1px;
+}
+.q-table {
+  border-spacing: 0 !important; /* 테이블 간격을 없앱니다 */
 }
 </style>
