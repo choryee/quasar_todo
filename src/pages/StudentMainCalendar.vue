@@ -2,20 +2,7 @@
   <div>
     <div>
       <!-- 학생 정보를 보여주는 섹션 -->
-      <q-card class="my-card" flat bordered>
-        <q-card-section horizontal class="student-info">
-          <q-img
-            class="student-img"
-            src="https://cdn.quasar.dev/img/parallax2.jpg"
-          />
-          <q-card-section>
-            <div>
-              <h5>Información del estudiante.</h5>
-              <p>추가 정보 입력 가능</p>
-            </div>
-          </q-card-section>
-        </q-card-section>
-      </q-card>
+      <StudentInfo :studentData="studentData"/>
     </div>
       <br />
 
@@ -53,8 +40,6 @@
             </q-tab-panel>
           </q-tab-panels>
         </div>
-
-
   </div>
 
 </template>
@@ -63,22 +48,26 @@
 import FullCalendar from "@fullcalendar/vue"; // FullCalendar Core
 import dayGridPlugin from '@fullcalendar/daygrid'; // 월간 보기 플러그인
 import interactionPlugin from '@fullcalendar/interaction'; // 클릭/드래그 인터랙션 플러그인
-import ScheduleDetailForLecturer from "pages/ScheduleDetailForLecturer.vue";
+import LecturerScheduleDetail from "pages/LecturerScheduleDetail.vue";
 import DailyFeedback from "pages/DailyFeedback.vue";
 import MonthlyFeedback from "pages/MonthlyFeedback.vue";
 import axios from "axios";
 import {QBtn} from "quasar";
+import StudentInfo from "pages/StudentInfo.vue";
 
 export default {
   components: {
     FullCalendar,
-    ScheduleDetailForLecturer,
+    LecturerScheduleDetail,
     DailyFeedback,
     MonthlyFeedback,
-    QBtn // Quasar 버튼 컴포넌트 등록
+    QBtn, // Quasar 버튼 컴포넌트 등록
+    StudentInfo,
   },
+
   data() {
     return {
+      studentData:null,
       currentTab: 'daily', // 기본 탭 설정
       calendarOptions: {
         plugins: [dayGridPlugin, interactionPlugin],
@@ -91,9 +80,22 @@ export default {
         eventDidMount: this.handleEventRendering,  // 이벤트 렌더링 시 버튼 추가
       },
       selectedEvent: null, // 선택된 이벤트 저장
-      updatedData:[],
       showPostponeButton: false, // 버튼 표시 여부
     };
+  },
+  async created(){
+    try {
+      const loginUserInfo = JSON.parse(localStorage.getItem('loginUserInfo'));
+      const user_id = loginUserInfo.user_id;
+      const member_id = loginUserInfo.member_id;
+      await this.$store.dispatch('fetchStudentById', user_id);
+      this.studentData = this.$store.state.getStudentById;
+      //await this.$store.dispatch('fetchAllLessonSchedulesByMemberId', member_id)
+
+    } catch (error) {
+      console.error('데이터 로딩 중 오류 발생:', error);
+    }
+
   },
   watch: {
     // calendarOptions.events 값이 변경될 때마다 갱신
@@ -121,17 +123,31 @@ export default {
     },
 
     addPostponeButton(info) {
-      if (info.event.extendedProps.class_delay_yn === 'Y' || info.event.extendedProps.added_byDelay === 'Y') {
+      if (info.event.extendedProps.class_delay_yn === 'Y' ||
+        info.event.extendedProps.added_by_delay === 'Y' ||
+        //info.event.extendedProps.added_by_delay === 'Y admin' ||
+        info.event.extendedProps.class_delay_lecturer_yn === 'Y'
+
+      ) {
         return; // 연기된 수업은 버튼을 추가하지 않음
       }
 
       const postponeButton = document.createElement('button');
       postponeButton.textContent = '수업연기';
       postponeButton.className = 'postpone-btn';
-      postponeButton.addEventListener('click', (event) => {
-        event.stopPropagation(); // 클릭 시 이벤트 전파를 막음
-        this.postponeLesson(info, postponeButton);
-      });
+      if(info.event.extendedProps.added_by_delay === 'Y admin' ){
+        postponeButton.textContent = '추가수업';
+        postponeButton.style.backgroundColor = 'red';
+        // postponeButton.className = 'postpone-btn';
+        // info.el.appendChild(postponeButton);
+        // return;
+      }
+      if(info.event.extendedProps.added_by_delay !== 'Y admin'){
+        postponeButton.addEventListener('click', (event) => {
+          event.stopPropagation(); // 클릭 시 이벤트 전파를 막음
+          this.postponeLesson(info, postponeButton);
+        });
+      }
 
       info.el.appendChild(postponeButton);
 
@@ -149,7 +165,9 @@ export default {
 
 
     addStrikeThroughToEvent(info) {
-      if (info.event.start && info.event.extendedProps.class_delay_yn === 'Y') {
+      if (info.event.start && info.event.extendedProps.class_delay_yn === 'Y' ||
+        info.event.start && info.event.extendedProps.class_delay_lecturer_yn === 'Y'
+      ) {
         const timeElement = info.el.querySelector('.fc-event-time');
         if (timeElement) {
           //timeElement.style.textDecoration = 'line-through';
@@ -173,6 +191,7 @@ export default {
     },
 
     postponeLesson(info, postponeButton) {
+      // 수업 연기 횟수 조회.
       axios.get('http://localhost:8080/classDelayCount', {
         params:{
           enroll_id : info.event.extendedProps.enroll_id,
@@ -203,13 +222,23 @@ export default {
             });
             return;
           }else {
-               // 수업 연기 요청 서버 호출
+               // 학생이 수업 연기 요청 서버 호출
                 axios.post('http://localhost:8080/postponeLesson', {
                   schedule_id: info.event.extendedProps.schedule_id,
                   member_id: info.event.extendedProps.member_id,
                   enroll_id:info.event.extendedProps.enroll_id,
-                  class_delay_yn: 'Y',
-                  added_byDelay : 'Y'
+                  lecturer_id:info.event.extendedProps.lecturer_id,
+                  subject_name:info.event.extendedProps.subject_name,
+                  lesson_fee : info.event.extendedProps.lesson_fee,
+                  lesson_end_time: info.event.extendedProps.lesson_end_time,
+                  // 아래.학생 첨 캘린더 뿌릴때,포함된것. 아래는, 대체수업을 다시 수업연기시, 새로운 행에 그냥 표시위해.
+                  lecturer_sub_name : info.event.extendedProps.lecturer_sub_name,
+                  lecturer_sub_name_requested : info.event.extendedProps.lecturer_sub_name_requested,
+                  lecturer_sub_lecturer_id  : info.event.extendedProps.lecturer_sub_lecturer_id ,
+                  lecturer_sub_user_id : info.event.extendedProps.lecturer_sub_user_id,
+                  lecturer_cancel_reason : info.event.extendedProps.lecturer_cancel_reason,
+                  lecturer_cancel_yn : info.event.extendedProps.lecturer_cancel_yn,
+
                 })
                   .then(res => {
                     this.$q.dialog({
@@ -225,8 +254,8 @@ export default {
                     const calendarApi = this.$refs.fullCalendar.getApi();
                     const event = calendarApi.getEventById(info.event.id);  // 해당 이벤트를 찾음
                     console.log('info.event.id >>>', info.event.id);
+                    // 밑은 event은 변경된 이벤트임.
                     if (event) {
-
                       // 이벤트 제목에 "연기됨" 추가
                       event.setProp('title', `${event.title} [연기됨]`);
 
@@ -250,10 +279,10 @@ export default {
                         el: info.el,
                       });
 
-                      // 강제로 캘린더 리렌더링 (추가 사항)
-                      calendarApi.refetchEvents();
+                      // 강제로 캘린더 리렌더링. 수업연기된 날짜가 바로 캘린더에 보이게.
+                      this.updateCalendarEvents();
                     }
-                  })
+                  }) // then()
                   .catch(error => {
                     console.error('수업 연기 실패:', error.response || error.message);
                   });
@@ -264,57 +293,79 @@ export default {
         })
     },
 
-    getAllLessons(){
-      axios.get('http://localhost:8080/getAllLessonsByMemberId', {
-        params: { // 밑의 params는 아직 this.calendarOptions.events 넣기 전이라, 다른 페이지에서 넘어올때 받아와야.
-          member_id: 500,
-          enroll_id: 69
-        }
-      })
+    // 강제로 캘린더 이벤트 리렌더링
+    updateCalendarEvents() {
+      // 서버에서 새로운 데이터를 가져오거나 기존 이벤트 데이터를 갱신
+      this.getAllLessons();
+
+    },
+
+    async getAllLessons() {
+      const loginUserInfo = JSON.parse(localStorage.getItem('loginUserInfo'));
+      const member_id = loginUserInfo.member_id;
+
+      await axios.get(`http://localhost:8080/getAllLessonSchedulesByMemberId/${member_id}`)
         .then(({data})=>{
-          console.log('캘린더 res>>>', data);
+          console.log('캘린더 data>>>', data);
+
           // 서버에서 받은 데이터를 FullCalendar 형식에 맞게 설정
           const events = data.map(event => {
             let eventTitle;
-            //let eventStart;
 
             // class_delay_yn이 'Y'이면 '수업연기'로 설정
-            if (event.class_delay_yn === 'Y') {
-              eventTitle = '  [연기됨]';
-              //eventStart = null;
+            if (event.class_delay_yn === 'Y' || event.class_delay_lecturer_yn === 'Y') {
+              eventTitle = '[연기됨]';
             } else {
-              // member_id가 유효하다면 그 값을 사용, 그렇지 않으면 '기타'
-              eventTitle = event.member_id ? String(event.member_id) : '기타';
-             // eventStart = `${event.lesson_date}T${event.lesson_time}`;
+              eventTitle = event.name ? event.name : '기타';
             }
 
-            console.log('Event title:', eventTitle);  // 디버깅: 제목이 제대로 설정되는지 확인
+            console.log('Event title:', eventTitle); // 디버깅: 제목이 제대로 설정되는지 확인
 
             return {
               id: event.schedule_id, // 고유 id
               title: eventTitle,      // 수정된 제목
-              start: `${event.lesson_date}T${event.lesson_time}`,  // 여기 값이 null이면, 캘린더에 표기 에러남.
+              start: `${event.lesson_date}T${event.lesson_time}`, // 시작 시간
               extendedProps: {
-                subject_name: event.subject_name,
-                start_time: event.lesson_time,
-                member_id: event.member_id,
-                pronunciation: event.pronunciation,
-                grammar: event.grammar,
-                expression: event.expression,
-                lecturer_evaluation: event.lecturer_evaluation,
-                comments: event.comments,
                 schedule_id: event.schedule_id,
-                attend_yn: event.attend_yn,
-                class_delay_yn: event.class_delay_yn,
+                lecturer_id: event.lecturer_id,
                 enroll_id: event.enroll_id,
-                added_byDelay: event.added_byDelay
+                member_id: event.member_id,
+                subject_name: event.subject_name,
+                lesson_fee:event.lesson_fee,
+                start_time: event.lesson_time,
+                lesson_end_time:event.lesson_end_time,
+                start_date: event.lesson_date,
+                name: event.name,
+                pronunciation:event.pronunciation,
+                grammar:event.grammar,
+                expression:event.expression,
+                lecturer_evaluation:event.lecturer_evaluation,
+                comments:event.comments,
+                attend_yn:event.attend_yn,
+                class_delay_yn:event.class_delay_yn,
+                class_delay_lecturer_yn:event.class_delay_lecturer_yn,
+                added_by_delay: event.added_by_delay,
+                holiday_yn:event.holiday_yn,
+                lecturer_cancel_yn:event.lecturer_cancel_yn,
+                lecturer_sub_name:event.lecturer_sub_name,
+                lecturer_sub_name_requested:event.lecturer_sub_name_requested,
+                lecturer_sub_lecturer_id:event.lecturer_sub_lecturer_id,
+                lecturer_sub_user_id:event.lecturer_sub_user_id,
+                lecturer_cancel_reason:event.lecturer_cancel_reason,
+                lecturer_cancel_status:event.lecturer_cancel_status,
+                class_status:event.class_status,
+                audioFileUrl:event.audioFileUrl,
+                pronunciation_advice_yn: event.pronunciation_advice_yn
               }
             };
-          }); // const events
+          }); //map
+
           this.calendarOptions.events = events;
           console.log('this.calendarOptions.events >>>', this.calendarOptions.events);
-        }) // axios
-    },// getAllLessons
+        })
+
+    }//getAllLessons
+
   },
 };
 </script>
@@ -328,8 +379,6 @@ export default {
   margin: 0 auto;
   padding-bottom: 30px; /* 기존에 있을 수 있는 패딩 제거 */
 }
-
-
 
 /* 반응형 학생 정보 섹션 */
 .student-info {
@@ -369,7 +418,6 @@ export default {
     font-size: 12px;
     padding: 2px 30px;
     bottom: -25px;
-
   }
 }
 

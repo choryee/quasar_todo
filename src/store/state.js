@@ -9,8 +9,28 @@ Vue.use(Vuex);
 
 const store = new Vuex.Store({
   state: {
-      lecturerInfo: null,
+    lecturerInfo: null,
+    countByLecturerUserId: null,
+    getAllJobInterviewTimes : null,
+    discountAllInfo: [],
+    countEnrollmentByMemberId: null,
+    lecturerFeeInfo: [], // basic=200, mid=210.  2개가 배열로 있음.
+    studentFeeInfo: [],
+    getStudentById: null,
+    getNewEnrollments : [],
+    loginUserInfo : null,
+    getAllStudentByLecturerId:null,
+    getAllLecturers:[],
+    getAllLessonSchedulesByMemberId: [],
+
+
+
   },
+  getters:{
+    getDiscountInfo:(state)=>state.discount,
+    getAllLessonSchedulesByMemberId: state => state.getAllLessonSchedulesByMemberId || [],
+
+  }
 })
 
 export default store;

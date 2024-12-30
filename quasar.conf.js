@@ -9,7 +9,9 @@
 // https://v1.quasar.dev/quasar-cli/quasar-conf-js
 
 
-module.exports = function (/* ctx */) {
+const {resolve} = require("path");
+
+module.exports = function (ctx) {
   return {
     // https://v1.quasar.dev/quasar-cli/supporting-ts
     supportTS: false,
@@ -50,8 +52,22 @@ module.exports = function (/* ctx */) {
     // Full list of options: https://v1.quasar.dev/quasar-cli/quasar-conf-js#Property%3A-build
     build: {
       vueRouterMode: 'hash', // available values: 'hash', 'history'
-
-      // transpile: false,
+      chainWebpack(chain) {
+        chain.plugin('provide').use(require('webpack').ProvidePlugin, [
+          {
+            $: 'jquery',
+            jQuery: 'jquery',
+          },
+        ]);
+      },
+      env: {
+         VUE_APP_API_URL: ctx.dev ? 'http://localhost:8080' : 'https://your-production-domain.com'
+        //VUE_APP_API_URL: process.env.VUE_APP_API_URL  // <-- 이건 안 됨.
+      },
+      // alias: {
+      //   '@': resolve(__dirname, './src'),
+      // },
+      // transpile: true,
 
       // Add dependencies for transpiling with Babel (Array of string/regex)
       // (from node_modules, which are by default not transpiled).
@@ -92,6 +108,7 @@ module.exports = function (/* ctx */) {
       iconSet: 'material-icons', // Quasar icon set
       lang: 'en-us', // Quasar language pack
       config: {},
+
 
 
       // Possible values for "importStrategy":

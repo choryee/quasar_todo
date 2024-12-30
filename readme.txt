@@ -40,13 +40,13 @@ Vue 2 project(Quasar v1)
 https://v1.quasar.dev/
 
 
-******* LecturerMain.vue *******
 <!-- 강사 정보를 보여주는 섹션 -->
+LecturerMain.vue
 <NewStudentForLecturer />
 <AllStudentForLecturer :lessons="lessonsData"/>
 <LecturerCalendar />
   - <FullCalendar>
-  - <ScheduleDetailForLecturer> <-- emit
+  - <LecturerScheduleDetail> <-- emit
 
 
 

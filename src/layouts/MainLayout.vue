@@ -6,8 +6,8 @@
 
     <!--  q-header -->
     <q-header elevated>
-
       <q-toolbar>
+        <!-- 햄버거 메뉴 버튼 -->
         <q-btn
           flat
           dense
@@ -17,10 +17,16 @@
           @click="leftDrawerOpen = !leftDrawerOpen"
         />
       </q-toolbar>
+
       <div>
         <div class="text-subtitle1">{{todayDate}}</div>
       </div>
 
+      <!-- 로그인, 회원가입, 고객센터 -->
+      <q-btn flat label="로그인" color="primary" class="q-mr-sm" @click="goToLogin" />
+      <q-btn flat label="회원가입" color="primary" class="q-mr-sm" @click="goToSignUp" />
+      <q-btn flat label="고객센터" color="primary" class="q-mr-sm" @click="goToSupport" />
+      <q-btn flat label="로그아웃" color="primary" class="q-mr-sm" @click="goToLogOut" />
       <q-img
         src="../statics/coffee.jpg"
         class="header-image absolute-top"/>
@@ -64,6 +70,20 @@
           </q-item>
 
           <q-item
+            to="/login"
+            exact
+            clickable
+            v-ripple>
+            <q-item-section avatar>
+              <q-icon name="list" />
+            </q-item-section>
+            <q-item-section>
+              login
+            </q-item-section>
+          </q-item>
+
+
+          <q-item
             to="/lecturerMain"
             exact
             clickable
@@ -73,6 +93,19 @@
             </q-item-section>
             <q-item-section>
               lecturerMain
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            to="/lecturerList"
+            exact
+            clickable
+            v-ripple>
+            <q-item-section avatar>
+              <q-icon name="list" />
+            </q-item-section>
+            <q-item-section>
+              lecturerList
             </q-item-section>
           </q-item>
 
@@ -129,7 +162,7 @@
           </q-item>
 
           <q-item
-            to="/joinForLecturer"
+            to="/joinLecturerForm"
             exact
             clickable
             v-ripple>
@@ -137,7 +170,20 @@
               <q-icon name="list" />
             </q-item-section>
             <q-item-section>
-              joinForLecturer
+              joinLecturerForm
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            to="/joinStudentForm"
+            exact
+            clickable
+            v-ripple>
+            <q-item-section avatar>
+              <q-icon name="list" />
+            </q-item-section>
+            <q-item-section>
+              joinStudentForm
             </q-item-section>
           </q-item>
 
@@ -193,6 +239,8 @@
             </q-item-section>
           </q-item>
 
+
+
         </q-list>
       </q-scroll-area>
 
@@ -239,6 +287,24 @@ export default {
       let timeStamp = Date.now();
       return date.formatDate(timeStamp, 'dddd D MMMM YYYY');
     }
+  },
+  methods:{
+    goToLogin(){
+      this.$router.push(`/login`);
+    },
+    goToSignUp(){
+
+    },
+
+    goToSupport(){
+
+    },
+    goToLogOut(){ // /logdut호출 안 하고, 그냥 저장된 토큰만 삭제하기로 함. 새션방식이였으면, 그 호출 필요했을 것.
+      localStorage.removeItem('Authorization');
+      console.log(' removeItem gn>>>', localStorage.getItem('Authorization'));
+      this.$store.state.loginUserInfo = null;
+      localStorage.removeItem('loginLecturerInfo');
+    },
   }
 }
 

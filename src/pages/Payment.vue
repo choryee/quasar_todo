@@ -1,91 +1,114 @@
 <template>
-  <div>
-    <q-page class="q-pa-md">
-      <div class="calendar-container">
-        <FullCalendar
-          ref="fullCalendar"
-          :options="calendarOptions"
-        />
-      </div>
-    </q-page>
+  <div class="payment-page">
+    <q-card flat bordered class="q-pa-md">
+      <q-card-section>
+        <div class="text-h6">결제하기</div>
+        <div class="q-mt-md originalPrice text-muted" v-if="formData.lesson_discount_rate !== 0">
+          금액: <b>{{formatNumber(formData.lesson_amount)  }}원</b>
+        </div>
+        <div class="q-mt-md" v-if="formData.lesson_discount_rate !== 0">
+          할인 금액: <b>{{`${formatNumber( formData.lesson_amount - formData.lesson_amount_discount)}원(${formData.lesson_discount_rate}%)`}}</b>
+        </div>
+        <div class="q-mt-md" v-if="formData.lesson_discount_rate !== 0">
+          결제 금액: <b>{{formatNumber( formData.lesson_amount_discount) }}원</b>
+        </div>
+        <div v-else>
+          결제 금액: <b>{{formatNumber( formData.lesson_amount) }}원</b>
+        </div>
+      </q-card-section>
+
+      <q-card-actions align="right">
+        <q-btn color="primary" label="결제하기" @click="requestPayment" />
+      </q-card-actions>
+    </q-card>
   </div>
 </template>
 
 <script>
-import FullCalendar from "@fullcalendar/vue";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import interactionPlugin from "@fullcalendar/interaction";
-import { QBtn } from "quasar";
-
+import NumberFormat from "src/services/NumberFourDigitFormat";
 export default {
-  components: {
-    FullCalendar,
+  props: {
+    formData: {
+      type: Object,
+    }
   },
   data() {
     return {
-      calendarOptions: {
-        plugins: [dayGridPlugin, interactionPlugin],
-        initialView: "dayGridMonth",
-        locale: "en",
-        height: 500,
-        expandRows: true,
-        dayCellContent: this.renderDayCell, // 요일 셀 커스터마이징
+      paymentAmount: 120, // 결제 금액 (예: 50,000원)
+      userInfo: {
+        name: "홍길동",
+        email: "hong@example.com",
+        phone: "010-1234-5678",
       },
     };
   },
+  mounted() {
+    if (!window.jQuery) {
+      const script = document.createElement('script');
+      script.src = 'https://code.jquery.com/jquery-3.6.4.min.js';
+      script.onload = this.loadIamport;
+      document.head.appendChild(script);
+    } else {
+      this.loadIamport();
+    }
+  },
   methods: {
-    /**
-     * 날짜 셀에 버튼을 추가
-     */
-    renderDayCell(arg) {
-      const button = document.createElement("div");
+    formatNumber(val) {
+      return NumberFormat.getNumberFourDigitFormatted(val);
+    },
+    loadIamport() {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.iamport.kr/js/iamport.payment-1.1.8.js';
+      script.onload = () => {
+        console.log('Iamport script loaded');
+      };
+      document.head.appendChild(script);
+    },
 
-      // Quasar QBtn을 생성
-      const qBtn = this.$createElement(QBtn, {
-        props: {
-          label: "Action",
-          size: "sm",
-          color: "primary",
-          flat: true,
-        },
-        on: {
-          click: () => this.handleDayButtonClick(arg.date),
-        },
-      });
+    requestPayment() {
+      const IMP = window.IMP; // PortOne(아임포트) 객체 초기화
+      console.log('IMP>>>', IMP);
+      IMP.init("imp23576402"); // PortOne에서 발급받은 가맹점 고유코드 입력
 
-      // Vue 컴포넌트의 DOM 노드를 추가
-      this.$nextTick(() => {
-        if (button && qBtn.$el) {
-          button.appendChild(qBtn.$el);
+      const paymentData = {
+        pg: "kakaopay", // 결제 서비스 제공자 (PG사)
+        pay_method: "card", // 결제 수단 (카드 결제)
+        merchant_uid: `order_${new Date().getTime()}`, // 주문 번호 (고유해야 함)
+        name: "테스트 결제", // 상품명
+        amount: this.formData.pay_amount, // 결제 금액
+        buyer_name: this.userInfo.name, // 구매자 이름
+        buyer_email: this.userInfo.email, // 구매자 이메일
+        buyer_tel: this.userInfo.phone, // 구매자 전화번호
+      };
+
+      // 결제 요청
+      IMP.request_pay(paymentData, (rsp) => {
+        if (rsp.success) {
+          // 결제 성공 시 처리
+          console.log("결제 성공:", rsp);
+          // 추가 로직 (예: 서버로 결제 정보 전송)
+
+
+        } else {
+          // 결제 실패 시 처리
+          console.error("결제 실패 >> ", rsp);
+
         }
       });
 
-      // 날짜 셀 내용에 버튼 삽입
-      const content = arg.dayNumberText; // 날짜 숫자
-      const container = document.createElement("div");
-      container.innerHTML = content;
-      container.appendChild(button);
-
-      return { domNodes: [container] }; // FullCalendar에 반환
-    },
-    /**
-     * 날짜 버튼 클릭 이벤트 처리
-     */
-    handleDayButtonClick(date) {
-      this.$q.dialog({
-        title: "Action Triggered",
-        message: `You clicked the button for ${date.toDateString()}`,
-        ok: { label: "OK", color: "primary" },
-      });
     },
   },
-};
+}
+
 </script>
 
-<style>
-.calendar-container {
-  height: 500px; /* 캘린더 높이 고정 */
-  width: 100%; /* 가로 폭 자동 조정 */
-  max-width: 100%; /* 부모 요소를 넘어가지 않도록 제한 */
+<style scoped>
+.payment-page {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+}
+.originalPrice {
+  text-decoration: line-through;
 }
 </style>

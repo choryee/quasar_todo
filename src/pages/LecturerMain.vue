@@ -12,14 +12,15 @@
         <q-card bordered>
           <q-card-section>
             <!-- mugshot -->
-          <q-avatar v-if="rows && rows.length > 0 && rows[0].mugshotUrl" size="100px">
-            <img :src="rows[0].mugshotUrl || 'https://via.placeholder.com/80'" alt="Instructor Mugshot" />
-          </q-avatar>
-            <span v-if="rows && rows.length > 0 && rows[0].name" class="text-h5 text-right" style="margin-left: 10px;">
-              {{ rows[0].name }}
+            <q-avatar v-if="rows && rows.length > 0 && rows[0] && rows[0].mugshotUrl" size="100px">
+              <img :src="rows[0].mugshotUrl || 'https://via.placeholder.com/80'" alt="Instructor Mugshot" />
+            </q-avatar>
+            <span v-if="rows && rows.length > 0 && rows[0] && rows[0].name" class="text-h5 text-right" style="margin-left: 10px;">
+              {{ rows[0].name || name }}
             </span>
             <span v-else class="text-muted">Name not available</span>
            <div class="text-h5 text-left"> </div>
+
 
             <br/>
             <q-table
@@ -29,7 +30,7 @@
             row-key="name"
             flat
             bordered
-            :pagination="pagination"
+            :hide-bottom="rows.length > 0"
             >
               <template v-slot:body-cell-status="props">
                 <q-td>
@@ -46,7 +47,7 @@
             <div v-else>
               <p>No data available</p>  <!-- 데이터를 불러오지 못한 경우 -->
             </div>
-
+            <br/>
             <q-btn label="Edit My Info" color="primary" @click="editLecturer" />
             <q-btn label="Ask status changing" color="warning" @click="showDialog = true" />
           </q-card-section>
@@ -77,6 +78,7 @@
             </q-card>
           </q-dialog>
       </div>
+
       <br />
       <div>
         <q-card  bordered>
@@ -112,7 +114,7 @@
         </q-btn>
       </div>
       <div >
-        <!-- 신규 -->
+        <!-- Newly enrolled students -->
         <q-card bordered>
           <q-card-section>
             <NewStudentForLecturer />
@@ -124,7 +126,7 @@
         <!-- All my students list -->
         <q-card  bordered>
           <q-card-section>
-            <AllStudentForLecturer :lessons="lessonsData"/>
+            <AllStudentForLecturer />
           </q-card-section>
         </q-card>
       </div>
@@ -167,7 +169,9 @@ export default {
       currentView: "lecturerInfo", // lecturerInfo란 이름으로 "현재 표시 중인 화면"명명함.
       lessonsData:[],
       showDialog: false, // Dialog 상태 관리
+      name:'',
       status: "", // 현재 상태
+      test: null,
       selectedStatus: null, // 선택된 새로운 상태
       statusOptions: [
         { label: "Teaching_Pending", value: "teaching_pending" },
@@ -180,9 +184,8 @@ export default {
       rows: [],
       columns:
       [
-        { name: 'lecturer_user_id', label: 'Lecturer User ID', align: 'left', field: 'lecturer_user_id' },
+        { name: 'user_id', label: 'user_id', align: 'left', field: 'user_id' },
         { name: 'status', label: 'status', align: 'center', field: 'status' },
-        { name: 'password', label: 'Password', align: 'center', field: 'password' },
         { name: 'age', label: 'Age', align: 'center', field: 'age' },
         { name: 'gender', label: 'Gender', align: 'center', field: 'gender' },
         { name: 'email', label: 'Email', align: 'left', field: 'email' },
@@ -204,24 +207,33 @@ export default {
         { name: 'career_description', label: 'Career Description', align: 'left', style: 'width: 300px;', field: 'career_description' },
         { name: 'job_interview_yn', label: 'job_interview', align: 'left', field: 'job_interview_yn' },
         { name: 'attachment_path', label: 'Attachment Path', align: 'left', field: 'attachment_path' },
-
-
       ],
       pagination: { page: 1, rowsPerPage: 0, rowsNumber: 0 },  // 페이지네이션을 비활성
     };
   },
 
   computed: {
-
     // 현재 상태를 제외한 옵션 필터링
     filteredStatusOptions() {
       return this.statusOptions.filter(option => option.value !== this.status);
     },
   },
 
-  mounted() {
-    this.getInfoByLecturerId(36);
-  },
+    async created() {
+    // this.getInfoByLecturerId(this.$store.state.loginUserInfo.lecturer_id);
+     try {
+      // const response =  await this.$store.state.lecturerInfo;
+       const response =  localStorage.getItem('loginLecturerInfo');
+       const responseObj = JSON.parse(response);
+       if(response !== null){
+         this.rows = [responseObj];
+         this.status = this.rows[0].status;
+         this.pagination.rowsNumber = 1;
+        }
+     }catch (err){
+       console.log(' >>>', err);
+     }
+   },
 
   methods: {
     onStatusChange(newStatus) {
@@ -252,7 +264,6 @@ export default {
       }
 
       if (this.selectedStatus === "teaching_pending") {
-
           // Teaching 선택 시 요청 이메일 발송
           const param = {
             lecturer_user_id : this.rows[0].lecturer_user_id,
@@ -277,17 +288,17 @@ export default {
     },
 
     // 맨위 개별 정보
-    getInfoByLecturerId(lecturer_id){
-      // TODO 위 36 하드 코딩 바꾸어야.
+    async getInfoByLecturerId(lecturer_id){
       // const lecturer_id = 36; 이렇게 하면, 중복 변수 선언이라 에러남.
 
-      // 아래 axios호출을 바로 밑처럼 store의 actions에서 처리하게 하는 게 좋다고 함.
-      this.$store.dispatch("fetchLecturerInfo", lecturer_id)
-        .then(()=>{
-          this.rows = [this.$store.state.lecturerInfo];
-          this.status = this.rows[0].status;
-          this.pagination.rowsNumber = 1;
-        })
+      // 아래 axios호출을 바로 밑처럼 store의 actions에서 처리하게 하는 게 좋다고 함. 화면은 받은 수식계산과 UI업데이트만 처리하게.
+      console.log('getInfoByLecturerId에서 store >>>', this.$store.state.loginUserInfo);
+      try {
+        await this.$store.dispatch("fetchLecturerInfo", lecturer_id);
+
+      }catch (err){
+
+      }
 
       // axios.get('http://localhost:8080/lecturer/getLecturerInfo/'+ lecturer_id)
       //   .then(({data})=>{

@@ -8,7 +8,7 @@
         <q-card-section>
           <div class="q-pa-md">
             <q-input
-              v-model="formData.lecturer_user_id"
+              v-model="formData.user_id"
               label="Id"
               required
             />
@@ -143,12 +143,13 @@
 
 <script>
 import axios from "axios";
+import API from '../services/api';
 
 export default {
   data() {
     return {
       formData: {
-        lecturer_user_id:'',
+        user_id:'',
         password:'',
         name: '',
         email: '',
@@ -208,22 +209,38 @@ export default {
       const formDataWithoutMugshot = { ...this.formData };
       delete formDataWithoutMugshot.mugshot;
 
-      this.uploadImageFile()
-        .then(() => {
-          // mugshotUrl이 설정된 후 요청 전송
-          formDataWithoutMugshot.mugshotUrl = this.formData.mugshotUrl;
+      if(this.formData.mugshot !== null){ // TODO 이 조건 풀어야. 머그샷 없으면, 가입 안 되게.
+        this.uploadImageFile()
+          .then(() => {
+            // mugshotUrl이 설정된 후 요청 전송
+            formDataWithoutMugshot.mugshotUrl = this.formData.mugshotUrl;
 
-          axios.post('http://localhost:8080/lecturer/joinLecturer', formDataWithoutMugshot)
-            .then(({ data }) => {
-              console.log('lecturer/joinLecturer response >>>', data);
-              this.isSubmitting = false;
-            })
-            .catch(err => {
-              console.log('Error during lecturer registration >>>', err);
-              this.isSubmitting = false;
-            });
+            axios.post('http://localhost:8080/lecturer/joinLecturer', formDataWithoutMugshot)
+              .then(({ data }) => {
+                console.log('lecturer/joinLecturer response >>>', data);
+                this.isSubmitting = false;
+              })
+              .catch(err => {
+                console.log('Error during lecturer registration >>>', err);
+                this.isSubmitting = false;
+              });
 
-        }) //this.uploadImageFile()
+          }) //this.uploadImageFile()
+      }else{
+        // mugshotUrl이 설정된 후 요청 전송
+        formDataWithoutMugshot.mugshotUrl = this.formData.mugshotUrl;
+
+        axios.post('http://localhost:8080/lecturer/joinLecturer', formDataWithoutMugshot)
+          .then(({ data }) => {
+            console.log('lecturer/joinLecturer response >>>', data);
+            this.isSubmitting = false;
+          })
+          .catch(err => {
+            console.log('Error during lecturer registration >>>', err);
+            this.isSubmitting = false;
+          });
+      }
+
     }, // signUp
 
     uploadImageFile() {
@@ -231,7 +248,8 @@ export default {
       formData.append('file', this.formData.mugshot);
       formData.append('email', this.formData.email);
 
-      return axios.post('http://localhost:8080/upload/file', formData, {
+     return axios.post('http://localhost:8080/upload/file', formData, {
+      //return API.post('/upload/file', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }

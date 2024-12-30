@@ -19,6 +19,8 @@
     "axios": "^1.7.7",
     "chart.js": "^2.9.4",
     "core-js": "^3.6.5",
+    "iamport-react-native": "^2.0.12",
+    "jquery": "^3.7.1",
     "quasar": "^1.0.0",
     "vue": "^2.7.16",
     "vue-template-compiler": "^2.7.16"
